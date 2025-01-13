@@ -268,14 +268,14 @@ internal static class ProfessionMappings
 	
 	static readonly Dictionary<string, float> _professionFactors = new()
     {
-        { "woodcutting", ConfigService._woodcuttingFactor },
-        { "mining", ConfigService._miningFactor },
-        { "blacksmithing", ConfigService._blacksmithingFactor },
-        { "tailoring", ConfigService._tailoringFactor },
-        { "fishing", ConfigService._fishingFactor },
-        { "alchemy", ConfigService._alchemyFactor },
-        { "harvesting", ConfigService._harvestingFactor },
-        { "enchanting", ConfigService._enchantingFactor }
+        { "woodcutting", ConfigService.WoodcuttingFactor },
+        { "mining", ConfigService.MiningFactor },
+        { "blacksmithing", ConfigService.BlacksmithingFactor },
+        { "tailoring", ConfigService.TailoringFactor },
+        { "fishing", ConfigService.FishingFactor },
+        { "alchemy", ConfigService.AlchemyFactor },
+        { "harvesting", ConfigService.HarvestingFactor },
+        { "enchanting", ConfigService.EnchantingFactor }
     };
 	
     static readonly Dictionary<string, int> _fishingMultipliers = new()
