@@ -293,7 +293,32 @@ public static class ConfigService
 
     static readonly Lazy<bool> _extraRecipes = new(() => GetConfigValue<bool>("ExtraRecipes"));
     public static bool ExtraRecipes => _extraRecipes.Value;
-
+	
+	// adding profession factors
+	static readonly Lazy<float> _woodcuttingFactor = new(() => GetConfigValue<float>("WoodcuttingFactor"));
+    public static float WoodcuttingFactor => _woodcuttingFactor.Value;
+	
+	static readonly Lazy<float> _miningFactor = new(() => GetConfigValue<float>("MiningFactor"));
+    public static float MiningFactor => _miningFactor.Value;
+	
+	static readonly Lazy<float> _blacksmithingFactor = new(() => GetConfigValue<float>("BlacksmithingFactor"));
+    public static float BlacksmithingFactor => _blacksmithingFactor.Value;
+	
+	static readonly Lazy<float> _tailoringFactor = new(() => GetConfigValue<float>("TailoringFactor"));
+    public static float TailoringFactor => _tailoringFactor.Value;
+	
+	static readonly Lazy<float> _fishingFactor = new(() => GetConfigValue<float>("FishingFactor"));
+    public static float FishingFactor => _fishingFactor.Value;
+	
+	static readonly Lazy<float> _alchemyFactor = new(() => GetConfigValue<float>("AlchemyFactor"));
+    public static float AlchemyFactor => _alchemyFactor.Value;
+	
+	static readonly Lazy<float> _harvestingFactor = new(() => GetConfigValue<float>("HarvestingFactor"));
+    public static float HarvestingFactor => _harvestingFactor.Value;
+	
+	static readonly Lazy<float> _enchantingFactor = new(() => GetConfigValue<float>("EnchantingFactor"));
+    public static float EnchantingFactor => _enchantingFactor.Value;
+	
     static readonly Lazy<bool> _familiarSystem = new(() => GetConfigValue<bool>("FamiliarSystem"));
     public static bool FamiliarSystem => _familiarSystem.Value;
 
@@ -578,6 +603,14 @@ public static class ConfigService
             new ConfigEntryDefinition("Professions", "MaxProfessionLevel", 100, "The maximum level a player can reach in professions"),
             new ConfigEntryDefinition("Professions", "ProfessionMultiplier", 10f, "The multiplier for profession experience gained"),
             new ConfigEntryDefinition("Professions", "ExtraRecipes", false, "Enable or disable extra recipes"),
+			new ConfigEntryDefinition("Professions", "WoodcuttingFactor" , 1f, "Modify woodcutting profession xp by factor"),
+            new ConfigEntryDefinition("Professions", "MiningFactor" , 1f, "Modify mining profession xp by factor"),
+            new ConfigEntryDefinition("Professions", "BlacksmithingFactor" , 3f, "Modify blacksmithing profession xp by factor"),
+            new ConfigEntryDefinition("Professions", "TailoringFactor" , 3f, "Modify tailoring profession xp by factor"),
+            new ConfigEntryDefinition("Professions", "FishingFactor" , 3f, "Modify fishing profession xp by factor"),
+            new ConfigEntryDefinition("Professions", "AlchemyFactor" , 2f, "Modify alchemy profession xp by factor"),
+            new ConfigEntryDefinition("Professions", "HarvestingFactor" , 0.05f, "Modify harvesting profession xp by factor"),
+            new ConfigEntryDefinition("Professions", "EnchantingFactor" , 4f, "Modify enchanting profession xp by factor"),
             new ConfigEntryDefinition("Familiars", "FamiliarSystem", false, "Enable or disable the familiar system"),
             new ConfigEntryDefinition("Familiars", "ShareUnlocks", false, "Enable or disable sharing unlocks between players in clans or parties (uses exp share distance)"),
             new ConfigEntryDefinition("Familiars", "FamiliarCombat", true, "Enable or disable combat for familiars."),

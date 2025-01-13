@@ -179,6 +179,7 @@ internal static class ProfessionSystem
     }
     static void UpdateProfessionExperience(Entity target, Entity source, ulong steamID, KeyValuePair<int, float> xpData, float gainedXP, IProfessionHandler handler)
     {
+		gainedXP *= ProfessionMappings.GetProfessionFactor(handler.GetProfessionName());
         float newExperience = xpData.Value + gainedXP;
         int newLevel = ConvertXpToLevel(newExperience);
         bool leveledUp = false;
@@ -264,6 +265,19 @@ internal static class ProfessionSystem
 }
 internal static class ProfessionMappings
 {
+	
+	static readonly Dictionary<string, float> _professionFactors = new()
+    {
+        { "woodcutting", ConfigService._woodcuttingFactor },
+        { "mining", ConfigService._miningFactor },
+        { "blacksmithing", ConfigService._blacksmithingFactor },
+        { "tailoring", ConfigService._tailoringFactor },
+        { "fishing", ConfigService._fishingFactor },
+        { "alchemy", ConfigService._alchemyFactor },
+        { "harvesting", ConfigService._harvestingFactor },
+        { "enchanting", ConfigService._enchantingFactor }
+    };
+	
     static readonly Dictionary<string, int> _fishingMultipliers = new()
     {
         { "farbane", 1 },
@@ -353,6 +367,19 @@ internal static class ProfessionMappings
         }
         return 1;
     }
+	
+	public static float GetProfessionFactor(string name)
+    {
+        foreach (KeyValuePair<string, float> profession in _professionFactors)
+        {
+            if (name.ToLower().Contains(profession.Key))
+            {
+                return profession.Value;
+            }
+        }
+        return 1;
+    }
+	
     public static List<PrefabGUID> GetFishingAreaDrops(PrefabGUID prefab)
     {
         foreach (KeyValuePair<string, List<PrefabGUID>> location in _fishingAreaDrops)
