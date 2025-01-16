@@ -47,6 +47,8 @@ internal static class Core
     static readonly PrefabGUID _fallenAngel = new(-76116724);
     static readonly PrefabGUID _defaultEmoteBuff = new(-988102043);
 
+    static readonly PrefabGUID _wolfBiteCast = new(990205141);
+
     const float DIRECTION_DURATION = 6f; // for making familiars for player two face correct direction until battle starts
 
     const string SANGUIS = "Sanguis";
@@ -94,11 +96,11 @@ internal static class Core
             if (!ConfigService.LevelingSystem) DeathEventListenerSystemPatch.OnDeathEventHandler += FamiliarLevelingSystem.OnUpdate;
             DeathEventListenerSystemPatch.OnDeathEventHandler += FamiliarUnlockSystem.OnUpdate;
             //DetectSanguis(); want to nail the fun factor and make sure no glaring bugs before adding stakes
-            Misc.InitializeChanceModifiers();
             _ = new BattleService();
         }
 
-        ModifyBuffPrefabs();
+        ModifyPrefabs();
+        // MiscLogging();
 
         _initialized = true;
     }
@@ -116,7 +118,7 @@ internal static class Core
 
         _monoBehaviour.StartCoroutine(routine.WrapToIl2Cpp());
     }
-    static void ModifyBuffPrefabs()
+    static void ModifyPrefabs()
     {
         if (ConfigService.FamiliarSystem)
         {
@@ -151,20 +153,31 @@ internal static class Core
 
         if (ConfigService.SoftSynergies || ConfigService.HardSynergies)
         {
-            /*
-            if (SystemService.PrefabCollectionSystem._PrefabGuidToEntityMap.TryGetValue(_spawnMutantBiteBuff, out Entity spawnMutantBiteBuffPrefab))
-            {
-                spawnMutantBiteBuffPrefab.With((ref LifeTime lifeTime) =>
-                {
-                    lifeTime.Duration = 10f;
-                });
-            }
-            */
-
             if (SystemService.PrefabCollectionSystem._PrefabGuidToEntityMap.TryGetValue(_fallenAngel, out Entity fallenAngelPrefab))
             {
                 if (!fallenAngelPrefab.Has<BlockFeedBuff>()) fallenAngelPrefab.Add<BlockFeedBuff>();
             }
+        }
+
+        if (ConfigService.ShapeshiftAbilities)
+        {
+            if (SystemService.PrefabCollectionSystem._PrefabGuidToEntityMap.TryGetValue(_wolfBiteCast, out Entity wolfBiteCastPrefab))
+            {
+                wolfBiteCastPrefab.With((ref AbilityState abilityState) =>
+                {
+                    AbilityTypeFlag abilityTypeFlags = abilityState.AbilityTypeFlag;
+
+                    abilityTypeFlags |= AbilityTypeFlag.Interact;
+                    abilityTypeFlags &= ~(AbilityTypeFlag.AbilityKit | AbilityTypeFlag.AbilityKit_BreakStealth);
+                });
+            }
+        }
+    }
+    static void MiscLogging()
+    {
+        if (SystemService.PrefabCollectionSystem._PrefabGuidToEntityMap.TryGetValue(new(1649578802), out Entity prefabEntity))
+        {
+            LogEntity(Server, prefabEntity);
         }
     }
     public static void LogEntity(World world, Entity entity)

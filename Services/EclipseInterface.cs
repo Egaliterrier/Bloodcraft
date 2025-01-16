@@ -1,5 +1,5 @@
 ﻿using Bloodcraft.Patches;
-using Bloodcraft.Systems.Leveling;
+using Bloodcraft.Utilities;
 using ProjectM;
 using ProjectM.Network;
 using System.Globalization;
@@ -60,8 +60,8 @@ public class VersionHandler_1_1_2 : IVersionHandler<ProgressDataV1_1_2>
     }
     public void SendClientProgress(Entity character, ulong steamId)
     {
-        Entity userEntity = character.ReadRO<PlayerCharacter>().UserEntity;
-        User user = userEntity.ReadRO<User>();
+        Entity userEntity = character.Read<PlayerCharacter>().UserEntity;
+        User user = userEntity.Read<User>();
 
         ProgressDataV1_1_2 data = new()
         {
@@ -103,7 +103,7 @@ public class VersionHandler_1_1_2 : IVersionHandler<ProgressDataV1_1_2>
             .Append(',');
 
         // Iterate over each class and its synergies
-        foreach (var classEntry in LevelingSystem.ClassWeaponBloodEnumMap)
+        foreach (var classEntry in Classes.ClassWeaponBloodEnumMap)
         {
             var playerClass = classEntry.Key;
             var (weaponSynergies, bloodSynergies) = classEntry.Value;
@@ -154,8 +154,8 @@ public class VersionHandler_1_2_2 : IVersionHandler<ProgressDataV1_2_2>
     }
     public void SendClientProgress(Entity character, ulong steamId)
     {
-        Entity userEntity = character.ReadRO<PlayerCharacter>().UserEntity;
-        User user = userEntity.ReadRO<User>();
+        Entity userEntity = character.Read<PlayerCharacter>().UserEntity;
+        User user = userEntity.Read<User>();
 
         ProgressDataV1_2_2 data = new()
         {
@@ -200,7 +200,7 @@ public class VersionHandler_1_2_2 : IVersionHandler<ProgressDataV1_2_2>
             .Append(',');
 
         // Iterate over each class and its synergies
-        foreach (var classEntry in LevelingSystem.ClassWeaponBloodEnumMap)
+        foreach (var classEntry in Classes.ClassWeaponBloodEnumMap)
         {
             var playerClass = classEntry.Key;
             var (weaponSynergies, bloodSynergies) = classEntry.Value;

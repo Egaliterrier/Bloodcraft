@@ -48,7 +48,7 @@ internal class PlayerService // this is basically a worse version of the PlayerS
             players
                 .Select(userEntity =>
                 {
-                    User user = userEntity.ReadRO<User>();
+                    User user = userEntity.Read<User>();
                     string playerName = user.CharacterName.Value;
                     ulong steamId = user.PlatformId;
                     Entity character = user.LocalCharacter.GetEntityOnServer();
@@ -72,7 +72,7 @@ internal class PlayerService // this is basically a worse version of the PlayerS
                     }
                 });
 
-            if (!_migrated)
+            if (!_migrated && File.Exists(DataService.PlayerPersistence.JsonFilePaths.PlayerBoolsJson))
             {
                 List<PlayerInfo> playerCache = new(PlayerCache.Values);
 

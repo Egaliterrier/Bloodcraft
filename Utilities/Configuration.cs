@@ -2,7 +2,6 @@
 using Bloodcraft.Patches;
 using Bloodcraft.Services;
 using Bloodcraft.Systems.Familiars;
-using Bloodcraft.Systems.Leveling;
 using Bloodcraft.Systems.Quests;
 using ProjectM;
 using Stunlock.Core;
@@ -76,7 +75,7 @@ internal static class Configuration
     }
     public static void ClassSpellCooldownMap()
     {
-        foreach (var keyValuePair in LevelingSystem.ClassSpellsMap)
+        foreach (var keyValuePair in Classes.ClassSpellsMap)
         {
             List<PrefabGUID> spellPrefabs = ParseConfigIntegerString(keyValuePair.Value)
                 .Select(x => new PrefabGUID(x))
@@ -90,7 +89,7 @@ internal static class Configuration
     }
     public static void ClassPassiveBuffsMap()
     {
-        foreach (var keyValuePair in LevelingSystem.ClassBuffMap)
+        foreach (var keyValuePair in Classes.ClassBuffMap)
         {
             List<PrefabGUID> buffPrefabs = ParseConfigIntegerString(keyValuePair.Value)
                 .Select(buffPrefab => new PrefabGUID(buffPrefab))

@@ -46,14 +46,14 @@ internal static class FamiliarLevelingSystem
 
         if (!familiar.Exists() || familiar.IsDisabled() || familiar.HasBuff(_invulnerableBuff)) return; // don't process if familiar not found, not active, or not in combat mode
 
-        PrefabGUID familiarUnit = familiar.ReadRO<PrefabGUID>();
+        PrefabGUID familiarUnit = familiar.Read<PrefabGUID>();
         int familiarId = familiarUnit.GuidHash;
 
         ProcessExperienceGain(source, familiar, target, steamId, familiarId, groupMultiplier);
     }
     static void ProcessExperienceGain(Entity player, Entity familiar, Entity target, ulong steamId, int familiarId, float groupMultiplier)
     {
-        UnitLevel victimLevel = target.ReadRO<UnitLevel>();
+        UnitLevel victimLevel = target.Read<UnitLevel>();
         bool isVBlood = target.IsVBlood();
 
         float gainedXP = CalculateExperienceGained(victimLevel.Level, isVBlood);
@@ -75,16 +75,16 @@ internal static class FamiliarLevelingSystem
     public static void UpdateFamiliarExperience(Entity player, Entity familiar, int familiarId, ulong playerId, KeyValuePair<int, float> familiarXP, float gainedXP, int currentLevel)
     {
         FamiliarExperienceData data = FamiliarExperienceManager.LoadFamiliarExperience(playerId);
-        data.FamiliarExperience[familiarId] = new(familiarXP.Key, familiarXP.Value + gainedXP);
+        data.FamiliarLevels[familiarId] = new(familiarXP.Key, familiarXP.Value + gainedXP);
 
         FamiliarExperienceManager.SaveFamiliarExperience(playerId, data);
-        CheckAndHandleLevelUp(player, familiar, familiarId, playerId, data.FamiliarExperience[familiarId], currentLevel, gainedXP);
+        CheckAndHandleLevelUp(player, familiar, familiarId, playerId, data.FamiliarLevels[familiarId], currentLevel, gainedXP);
     }
     public static KeyValuePair<int, float> GetFamiliarExperience(ulong playerId, int familiarId)
     {
         FamiliarExperienceData data = FamiliarExperienceManager.LoadFamiliarExperience(playerId);
 
-        if (data.FamiliarExperience.TryGetValue(familiarId, out var familiarData))
+        if (data.FamiliarLevels.TryGetValue(familiarId, out var familiarData))
         {
             return familiarData;
         }
@@ -105,7 +105,7 @@ internal static class FamiliarLevelingSystem
             leveledUp = true;
             FamiliarExperienceData data = FamiliarExperienceManager.LoadFamiliarExperience(steamId);
 
-            data.FamiliarExperience[familiarId] = new(newLevel, familiarXP.Value);
+            data.FamiliarLevels[familiarId] = new(newLevel, familiarXP.Value);
             FamiliarExperienceManager.SaveFamiliarExperience(steamId, data);
         }
 
@@ -113,7 +113,7 @@ internal static class FamiliarLevelingSystem
         {
             Buffs.TryApplyBuff(familiar, _levelUpBuff);
 
-            UnitLevel unitLevel = familiar.ReadRO<UnitLevel>();
+            UnitLevel unitLevel = familiar.Read<UnitLevel>();
             unitLevel.Level._Value = newLevel;
             familiar.Write(unitLevel);
 
@@ -123,7 +123,7 @@ internal static class FamiliarLevelingSystem
 
         if (GetPlayerBool(steamId, "ScrollingText"))
         {
-            float3 targetPosition = familiar.ReadRO<Translation>().Value;
+            float3 targetPosition = familiar.Read<Translation>().Value;
 
             Core.StartCoroutine(DelayedFamiliarSCT(player, userEntity, targetPosition, _gold, gainedXP));
         }
