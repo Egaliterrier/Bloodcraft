@@ -148,26 +148,26 @@ internal static class QuestSystem
 
                 if (!isVBlood)
                 {
-                    if (playerLevel > DEFAULT_MAX_LEVEL && unitLevel.Level._Value > 80) // account for higher player level values than default
+                    if (playerLevel > DEFAULT_MAX_LEVEL && unitLevel.Level._Value > 80)
                     {
                         prefabs.Add(prefab);
                     }
-                    else if (Math.Abs(unitLevel.Level._Value - playerLevel) <= 10) // within 10 level difference check otherwise
+                    else if (Math.Abs(unitLevel.Level._Value - playerLevel) <= 10)
                     {
                         prefabs.Add(prefab);
                     }
                 }
                 else if (isVBlood)
                 {
-                    if (unitLevel.Level._Value > playerLevel) // skip vbloods higher than player
+                    if (unitLevel.Level._Value > playerLevel)
                     {
                         continue;
                     }
-                    else if (playerLevel > DEFAULT_MAX_LEVEL && unitLevel.Level._Value > 80) // account for higher player level values than default
+                    else if (playerLevel > DEFAULT_MAX_LEVEL && unitLevel.Level._Value > 80)
                     {
                         prefabs.Add(prefab);
                     }
-                    else if (Math.Abs(unitLevel.Level._Value - playerLevel) <= 10) // within 10 level difference check otherwise
+                    else if (Math.Abs(unitLevel.Level._Value - playerLevel) <= 10)
                     {
                         prefabs.Add(prefab);
                     }
@@ -539,7 +539,7 @@ internal static class QuestSystem
                     var questEntry = (questData[quest.Key].Progress, true);
                     _questCoroutines[steamId].Add(quest.Key, questEntry);
 
-                    Core.StartCoroutine(DelayedProgressUpdate(questData, quest, user, steamId, colorType));
+                    QuestProgressDelayRoutine(questData, quest, user, steamId, colorType).Start();
                 }
                 else
                 {
@@ -585,7 +585,7 @@ internal static class QuestSystem
 
         if (questType == QuestType.Weekly) quantity *= _questMultipliers[questType];
 
-        if (objective.Target.GetPrefabName().ToLower().Contains("vblood")) quantity *= VBLOOD_FACTOR;
+        if (objective.Target.GetPrefabName().Contains("vblood", StringComparison.OrdinalIgnoreCase)) quantity *= VBLOOD_FACTOR;
 
         if (ServerGameManager.TryAddInventoryItem(user.LocalCharacter._Entity, reward, quantity))
         {
@@ -723,7 +723,6 @@ internal static class QuestSystem
         }
         else if (_expertise)
         {
-            // If only Expertise is enabled
             Expertise.WeaponType weaponType = WeaponManager.GetCurrentWeaponType(character);
             IWeaponHandler expertiseHandler = ExpertiseHandlerFactory.GetExpertiseHandler(weaponType);
 
@@ -739,7 +738,6 @@ internal static class QuestSystem
         }
         else if (_legacy)
         {
-            // If only Legacy is enabled
             BloodType bloodType = BloodManager.GetCurrentBloodType(character);
             IBloodHandler bloodHandler = BloodHandlerFactory.GetBloodHandler(bloodType);
 
@@ -798,7 +796,7 @@ internal static class QuestSystem
 
         return string.Empty;
     }
-    static IEnumerator DelayedProgressUpdate(
+    static IEnumerator QuestProgressDelayRoutine(
     Dictionary<QuestType, (QuestObjective Objective, int Progress, DateTime LastReset)> questData,
     KeyValuePair<QuestType, (QuestObjective Objective, int Progress, DateTime LastReset)> quest,
     User user,
@@ -812,7 +810,7 @@ internal static class QuestSystem
 
         yield return _questMessageDelay;
 
-        if (GetPlayerBool(steamId, "QuestLogging") && !quest.Value.Objective.Complete)
+        if (GetPlayerBool(steamId, QUEST_LOG_KEY) && !quest.Value.Objective.Complete)
         {
             string message = $"Progress added to {colorType}: <color=green>{quest.Value.Objective.Goal}</color> " +
                              $"<color=white>{quest.Value.Objective.Target.GetLocalizedName()}</color> " +

@@ -15,7 +15,7 @@ using User = ProjectM.Network.User;
 namespace Bloodcraft.Patches;
 
 [HarmonyPatch]
-internal static class CraftingSystemPatches // ForgeSystem_Update, UpdateCraftingSystem
+internal static class CraftingSystemPatches
 {
     static EntityManager EntityManager => Core.EntityManager;
     static ServerGameManager ServerGameManager => Core.ServerGameManager;
@@ -27,7 +27,7 @@ internal static class CraftingSystemPatches // ForgeSystem_Update, UpdateCraftin
     static readonly bool _quests = ConfigService.QuestSystem;
 
     const float CRAFT_THRESHOLD = 0.975f;
-    const float FAKE_DELAY = 0.75f;
+    const float SCT_DELAY = 0.75f;
     static readonly float _craftRateModifier = SystemService.ServerGameSettingsSystem._Settings.CraftRateModifier;
 
     static readonly ConcurrentDictionary<ulong, Dictionary<Entity, Dictionary<PrefabGUID, int>>> _playerCraftingJobs = []; // guess I'll just start using these if in doubt about the order of operations, so to speak >_>   
@@ -87,7 +87,7 @@ internal static class CraftingSystemPatches // ForgeSystem_Update, UpdateCraftin
 
                             if (durability.MaxDurability > originalDurability.MaxDurability) continue; // already handled
 
-                            float delay = FAKE_DELAY;
+                            float delay = SCT_DELAY;
                             int level = handler.GetProfessionData(steamId).Key;
 
                             durability.MaxDurability *= (1 + level / (float)ConfigService.MaxProfessionLevel);
@@ -291,7 +291,6 @@ internal static class CraftingSystemPatches // ForgeSystem_Update, UpdateCraftin
                     ulong steamId = fromCharacter.Character.GetSteamId();
 
                     Entity receivingInventory = NetworkIdSystem._NetworkIdLookupMap.TryGetValue(moveItemBetweenInventoriesEvent.ToInventory, out Entity station) ? station : Entity.Null;
-                    //Entity inventoryOwner = receivingInventory.Has<InventoryConnection>() ? receivingInventory.Read<InventoryConnection>().InventoryOwner : Entity.Null;
                     int fromSlot = moveItemBetweenInventoriesEvent.FromSlot;
 
                     PrefabGUID itemPrefabGUID = InventoryUtilities.TryGetInventoryEntity(EntityManager, fromCharacter.Character, out Entity playerInventory)

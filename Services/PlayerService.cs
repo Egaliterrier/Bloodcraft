@@ -34,7 +34,7 @@ internal class PlayerService // this is basically a worse version of the PlayerS
     public PlayerService()
     {
         _userQuery = EntityManager.CreateEntityQuery(_userComponent);
-        Core.StartCoroutine(PlayerCacheRoutine());
+        PlayerCacheRoutine().Start();
     }
     static IEnumerator PlayerCacheRoutine()
     {
@@ -109,6 +109,10 @@ internal class PlayerService // this is basically a worse version of the PlayerS
                     }
                 }
 
+                _migrated = true;
+            }
+            else
+            {
                 _migrated = true;
             }
 

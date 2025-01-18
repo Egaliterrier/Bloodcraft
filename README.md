@@ -108,7 +108,7 @@ Jairon Orellana; Odjit; Jera; Eve winters; Kokuren TCG and Gaming Shop;
   - Lists blood stats available.
   - Shortcut: *.bl lst*
 - `.bloodlegacy setlegacy.bl set [Player] [Blood] [Level]` 🔒
-  - Sets player Blood Legacy level.
+  - Sets player blood legacy level.
   - Shortcut: *.bl set [Player] [Blood] [Level]*
 - `.bloodlegacy list`
   - Lists blood legacies available.
@@ -150,7 +150,7 @@ Jairon Orellana; Odjit; Jera; Eve winters; Kokuren TCG and Gaming Shop;
 - `.familiar list`
   - Lists unlocked familiars from current box.
   - Shortcut: *.fam l*
-- `.familiar boxes`
+- `.familiar listboxes`
   - Shows the available familiar boxes.
   - Shortcut: *.fam box*
 - `.familiar choosebox [Name]`
@@ -180,9 +180,12 @@ Jairon Orellana; Odjit; Jera; Eve winters; Kokuren TCG and Gaming Shop;
 - `.familiar setlevel [Player] [Level]` 🔒
   - Set current familiar level.
   - Shortcut: *.fam sl [Player] [Level]*
-- `.familiar prestige [BonusStat]`
+- `.familiar listprestigestats`
+  - Display options for familiar prestige stats.
+  - Shortcut: *.fam lst*
+- `.familiar prestige [PrestigeStat]`
   - Prestiges familiar if at max, raising base stats by configured multiplier and adding an extra chosen stat.
-  - Shortcut: *.fam pr [BonusStat]*
+  - Shortcut: *.fam pr [PrestigeStat]*
 - `.familiar reset`
   - Resets (destroys) entities found in followerbuffer and clears familiar actives data.
   - Shortcut: *.fam reset*
@@ -195,9 +198,6 @@ Jairon Orellana; Odjit; Jera; Eve winters; Kokuren TCG and Gaming Shop;
 - `.familiar shinybuff [SpellSchool]`
   - Chooses shiny for current active familiar, one freebie then costs configured amount to change if already unlocked.
   - Shortcut: *.fam shiny [SpellSchool]*
-- `.familiar resetshiny [Name]` 🔒
-  - Allows player to choose another free visual, however, does not erase any visuals they have chosen previously. Mainly for testing.
-  - Shortcut: *.fam rs [Name]*
 - `.familiar toggleoption [Setting]`
   - Toggles various familiar settings.
   - Shortcut: *.fam option [Setting]*
@@ -239,8 +239,8 @@ Jairon Orellana; Odjit; Jera; Eve winters; Kokuren TCG and Gaming Shop;
   - Toggles general reminders for various mod features.
   - Shortcut: *.remindme*
 - `.sct`
-  - Toggles scrolling text.
-  - Shortcut: *.sct*
+  - Toggles various scrolling text elements.
+  - Shortcut: *.sct [Type]*
 - `.starterkit`
   - Provides starting kit.
   - Shortcut: *.kitme*
@@ -374,9 +374,9 @@ Jairon Orellana; Odjit; Jera; Eve winters; Kokuren TCG and Gaming Shop;
 - `.weapon list`
   - Lists weapon expertises available.
   - Shortcut: *.wep l*
-- `.weapon setspells [Name] [Slot] [PrefabGUID] [Radius]` 🔒
+- `.weapon setspells [Name] [Slot] [PrefabGuid] [Radius]` 🔒
   - Manually sets spells for testing (if you enter a radius it will apply to players around the entered name).
-  - Shortcut: *.wep spell [Name] [Slot] [PrefabGUID] [Radius]*
+  - Shortcut: *.wep spell [Name] [Slot] [PrefabGuid] [Radius]*
 - `.weapon restorelevels`
   - Fixes weapon levels if they are not correct. Don't use this unless you need to.
   - Shortcut: *.wep restore*
@@ -465,7 +465,7 @@ Jairon Orellana; Odjit; Jera; Eve winters; Kokuren TCG and Gaming Shop;
 - **Prestige Buffs**: `PrestigeBuffs` (string, default: "1504279833,475045773,1643157297,946705138,-1266262267,-773025435,-1043659405,-1583573438,-1869022798,-536284884")
   The PrefabGUID hashes for general prestige buffs, use 0 to skip otherwise buff applies at the prestige level.
 - **Prestige Levels To Unlock Class Spells**: `PrestigeLevelsToUnlockClassSpells` (string, default: "0,1,2,3,4,5")
-  The prestige levels at which class spells are unlocked. This should match the number of spells per class +1 to account for the default class spell. Can leave at 0 if you want them unlocked from the start.
+  The prestige levels at which class spells are unlocked. This should match the number of spells per class +1 to account for the default class spell. Can leave at 0 each if you want them unlocked from the start.
 - **Max Leveling Prestiges**: `MaxLevelingPrestiges` (int, default: 10)
   The maximum number of prestiges a player can reach in leveling.
 - **Leveling Prestige Reducer**: `LevelingPrestigeReducer` (float, default: 0.05)
@@ -584,8 +584,8 @@ Jairon Orellana; Odjit; Jera; Eve winters; Kokuren TCG and Gaming Shop;
   The maximum level a player can reach in professions.
 - **Profession Multiplier**: `ProfessionMultiplier` (float, default: 10)
   The multiplier for profession experience gained.
-- **Extra Recipes**: `ExtraRecipes` (bool, default: False)
-  Enable or disable extra recipes.
+- **Extra Recipes**: `ExtraRecipes` (bool, default: True)
+  Enable or disable extra recipes. Players will not be able to add/change shiny buffs for familiars without this unless other means of obtaining vampiric dust are provided.
 
 ### Familiars
 - **Familiar System**: `FamiliarSystem` (bool, default: False)
@@ -624,10 +624,8 @@ Jairon Orellana; Odjit; Jera; Eve winters; Kokuren TCG and Gaming Shop;
   The chance for a VBlood unlock as a familiar.
 - **Shiny Chance**: `ShinyChance` (float, default: 0.2)
   The chance for a shiny when unlocking familiars (6 total, 1 per familiar). Guaranteed on second unlock of same unit, chance on damage dealt (same as configured onHitEffect chance) to apply spell school debuff.
-- **Shiny Cost Item Prefab**: `ShinyCostItemPrefab` (int, default: -77477508)
-  Item PrefabGUID cost for changing shiny visual if one is already unlocked (currently demon fragment by default).
 - **Shiny Cost Item Quantity**: `ShinyCostItemQuantity` (int, default: 1)
-  Quantity of item required for changing shiny buff.
+  Quantity of vampiric dust required to make a familiar shiny. May also be spent to change shiny familiar's shiny buff at 25% cost. Enable ExtraRecipes to allow player refinement of this item from Advanced Grinders.
 - **Prestige Cost Item Quantity**: `PrestigeCostItemQuantity` (int, default: 2500)
   Quantity of schematics required to immediately prestige familiar (gain total levels equal to max familiar level, extra levels remaining from the amount needed to prestige will be added to familiar after prestiging).
 

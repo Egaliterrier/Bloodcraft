@@ -17,6 +17,7 @@ internal static class CreateGameplayEventOnDestroySystemPatch
     static readonly bool _professions = ConfigService.ProfessionSystem;
 
     const int BASE_FISHING_XP = 100;
+    const float SCT_DELAY = 0.75f;
 
     static readonly PrefabGUID _fishingTravelToTarget = new(-1130746976);
 
@@ -33,7 +34,7 @@ internal static class CreateGameplayEventOnDestroySystemPatch
             foreach (Entity entity in entities)
             {
                 if (!entity.TryGetComponent(out EntityOwner entityOwner) || !entityOwner.Owner.Exists() || !entity.TryGetComponent(out PrefabGUID prefabGUID)) continue;
-                else if (prefabGUID.Equals(_fishingTravelToTarget)) // fishing travel to target, this indicates a succesful fishing event
+                else if (prefabGUID.Equals(_fishingTravelToTarget)) // succesful fishing event
                 {
                     Entity playerCharacter = entityOwner.Owner;
                     Entity userEntity = playerCharacter.GetUserEntity();
@@ -61,7 +62,7 @@ internal static class CreateGameplayEventOnDestroySystemPatch
                     {
                         int multiplier = ProfessionMappings.GetFishingModifier(prefabGuid);
 
-                        float delay = 0.75f; // make const or whatever later
+                        float delay = SCT_DELAY;
 
                         ProfessionSystem.SetProfession(target, playerCharacter, steamId, BASE_FISHING_XP * multiplier, handler, ref delay);
                         ProfessionSystem.GiveProfessionBonus(target, prefabGuid, playerCharacter, userEntity, user, steamId, handler, delay);

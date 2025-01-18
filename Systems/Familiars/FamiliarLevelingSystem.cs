@@ -1,4 +1,5 @@
 ﻿using Bloodcraft.Services;
+using Bloodcraft.Systems.Leveling;
 using Bloodcraft.Utilities;
 using ProjectM;
 using Stunlock.Core;
@@ -19,18 +20,21 @@ internal static class FamiliarLevelingSystem
     static SystemService SystemService => Core.SystemService;
     static EndSimulationEntityCommandBufferSystem EndSimulationEntityCommandBufferSystem => SystemService.EndSimulationEntityCommandBufferSystem;
 
+    static readonly bool _familiarPrestige = ConfigService.FamiliarPrestige;
+
     static readonly float _unitFamiliarMultiplier = ConfigService.UnitFamiliarMultiplier;
     static readonly float _vBloodFamiliarMultiplier = ConfigService.VBloodFamiliarMultiplier;
     static readonly float _unitSpawnerMultiplier = ConfigService.UnitSpawnerMultiplier;
+    static readonly float _levelingPrestigeReducer = ConfigService.LevelingPrestigeReducer;
     static readonly int _maxFamiliarLevel = ConfigService.MaxFamiliarLevel;
 
     static readonly PrefabGUID _levelUpBuff = new(-1133938228);
 
     static readonly WaitForSeconds _delay = new(0.75f);
 
-    static readonly float3 _gold = new(1.0f, 0.8431373f, 0.0f); // Bright Gold
-    static readonly AssetGuid _assetGuid = AssetGuid.FromString("4210316d-23d4-4274-96f5-d6f0944bd0bb"); // experience hexString key
-    static readonly PrefabGUID _familiarSCT = new(1876501183); // SCT resource gain prefabguid, good visibility
+    static readonly float3 _gold = new(1.0f, 0.8431373f, 0.0f);
+    static readonly AssetGuid _experienceAssetGuid = AssetGuid.FromString("4210316d-23d4-4274-96f5-d6f0944bd0bb");
+    static readonly PrefabGUID _sctResourceGain = new(1876501183);
     public static void OnUpdate(object sender, DeathEventArgs deathEvent)
     {
         foreach (Entity player in deathEvent.DeathParticipants)
@@ -46,31 +50,38 @@ internal static class FamiliarLevelingSystem
 
         if (!familiar.IsEligibleForCombat()) return;
 
-        PrefabGUID familiarUnit = familiar.Read<PrefabGUID>();
-        int familiarId = familiarUnit.GuidHash;
-
-        ProcessExperienceGain(source, familiar, target, steamId, familiarId, groupMultiplier);
+        PrefabGUID familiarId = familiar.Read<PrefabGUID>();
+        ProcessExperienceGain(source, familiar, target, steamId, familiarId.GuidHash, groupMultiplier);
     }
-    static void ProcessExperienceGain(Entity player, Entity familiar, Entity target, ulong steamId, int familiarId, float groupMultiplier)
+    static void ProcessExperienceGain(Entity player, Entity familiar, Entity target, ulong steamId, int famKey, float groupMultiplier)
     {
-        UnitLevel victimLevel = target.Read<UnitLevel>();
+        int unitLevel = target.GetUnitLevel();
         bool isVBlood = target.IsVBlood();
 
-        float gainedXP = CalculateExperienceGained(victimLevel.Level, isVBlood);
+        float gainedXP = CalculateExperienceGained(unitLevel, isVBlood);
         gainedXP *= groupMultiplier;
 
         if (_unitSpawnerMultiplier < 1 && target.TryGetComponent(out IsMinion isMinion) && isMinion.Value)
         {
             gainedXP *= _unitSpawnerMultiplier;
-            if (gainedXP == 0) return;
+
+            if (gainedXP <= 0) return;
         }
 
-        KeyValuePair<int, float> familiarXP = GetFamiliarExperience(steamId, familiarId);
+        if (_familiarPrestige && FamiliarPrestigeManager.LoadFamiliarPrestige(steamId).FamiliarPrestiges.TryGetValue(famKey, out var prestigeData) && prestigeData.Key > 0)
+        {
+            int prestiges = prestigeData.Key;
+            float expReductionFactor = 1 - _levelingPrestigeReducer * prestiges;
+
+            gainedXP *= expReductionFactor;
+        }
+
+        KeyValuePair<int, float> familiarXP = GetFamiliarExperience(steamId, famKey);
 
         if (familiarXP.Key >= _maxFamiliarLevel) return;
 
         int currentLevel = ConvertXpToLevel(familiarXP.Value);
-        UpdateFamiliarExperience(player, familiar, familiarId, steamId, familiarXP, gainedXP, currentLevel);
+        UpdateFamiliarExperience(player, familiar, famKey, steamId, familiarXP, gainedXP, currentLevel);
     }
     static float CalculateExperienceGained(int victimLevel, bool isVBlood)
     {
@@ -127,18 +138,18 @@ internal static class FamiliarLevelingSystem
             if (familiar.Has<BloodConsumeSource>()) FamiliarSummonSystem.ModifyBloodSource(familiar, newLevel);
         }
 
-        if (GetPlayerBool(steamId, "ScrollingText"))
+        if (GetPlayerBool(steamId, SCT_FAMILIAR_KEY))
         {
             float3 targetPosition = familiar.Read<Translation>().Value;
 
-            Core.StartCoroutine(DelayedFamiliarSCT(player, userEntity, targetPosition, _gold, gainedXP));
+            FamiliarExperienceSCTDelayRoutine(player, userEntity, targetPosition, _gold, gainedXP).Start();
         }
     }
-    static IEnumerator DelayedFamiliarSCT(Entity character, Entity userEntity, float3 position, float3 color, float gainedXP)
+    static IEnumerator FamiliarExperienceSCTDelayRoutine(Entity character, Entity userEntity, float3 position, float3 color, float gainedXP)
     {
         yield return _delay;
-
-        ScrollingCombatTextMessage.Create(EntityManager, EndSimulationEntityCommandBufferSystem.CreateCommandBuffer(), _assetGuid, position, color, character, gainedXP, _familiarSCT, userEntity);
+        
+        ScrollingCombatTextMessage.Create(EntityManager, EndSimulationEntityCommandBufferSystem.CreateCommandBuffer(), _experienceAssetGuid, position, color, character, gainedXP, _sctResourceGain, userEntity);
     }
     static float GetXp(ulong steamID, int familiarId)
     {

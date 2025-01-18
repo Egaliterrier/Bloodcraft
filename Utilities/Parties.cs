@@ -37,9 +37,9 @@ internal static class PartyUtilities
     }
     static bool InvitesEnabled(ulong steamId)
     {
-        if (GetPlayerBool(steamId, "Grouping"))
+        if (GetPlayerBool(steamId, PARTY_INVITE_KEY))
         {
-            SetPlayerBool(steamId, "Grouping", false);
+            SetPlayerBool(steamId, PARTY_INVITE_KEY, false);
 
             return true;
         }
@@ -106,13 +106,30 @@ internal static class PartyUtilities
             LocalizationService.HandleReply(ctx, $"<color=green>{char.ToUpper(playerName[0]) + playerName[1..].ToLower()}</color> not found in party to remove...");
         }
     }
-    public static void ListPartyMembers(ChatCommandContext ctx, ConcurrentDictionary<ulong, ConcurrentList<string>> playerParties)
+    public static void ListPartyMembers(ChatCommandContext ctx,
+    ConcurrentDictionary<ulong, ConcurrentList<string>> playerParties)
     {
         ulong ownerId = ctx.Event.User.PlatformId;
         string playerName = ctx.Event.User.CharacterName.Value;
 
-        ConcurrentList<string> members = (ConcurrentList<string>)(playerParties.ContainsKey(ownerId) ? playerParties[ownerId] : playerParties.Where(groupEntry => groupEntry.Value.Contains(playerName)).SelectMany(groupEntry => groupEntry.Value));
-        string replyMessage = members.Count() > 0 ? string.Join(", ", members.Select(member => $"<color=green>{member}</color>")) : "No members in party.";
+        ConcurrentList<string> members;
+
+        if (playerParties.ContainsKey(ownerId))
+        {
+            members = playerParties[ownerId];
+        }
+        else
+        {
+            IEnumerable<string> aggregated = playerParties
+                .Where(groupEntry => groupEntry.Value.Contains(playerName))
+                .SelectMany(groupEntry => groupEntry.Value);
+
+            members = [..aggregated];
+        }
+
+        string replyMessage = members.Count() > 0
+            ? string.Join(", ", members.Select(member => $"<color=green>{member}</color>"))
+            : "No members in party.";
 
         LocalizationService.HandleReply(ctx, replyMessage);
     }

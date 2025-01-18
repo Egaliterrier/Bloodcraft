@@ -81,7 +81,7 @@ internal class QuestService
         });
 
         Configuration.QuestRewardItems();
-        Core.StartCoroutine(QuestUpdateLoop());
+        QuestUpdateLoop().Start();
     }
     static IEnumerator QuestUpdateLoop()
     {
@@ -182,6 +182,7 @@ internal class QuestService
                 {
                     //Core.Log.LogInfo(kvp.Key.LookupName());
                 }
+
                 _targetsLogged = true;
             }
 
