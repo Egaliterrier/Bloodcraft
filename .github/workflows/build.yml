@@ -59,7 +59,7 @@ jobs:
           body: Manual pre-release of ${{ env.version }}
           name: v${{ env.version }}
           fail_on_unmatched_files: true
-          prerelease: true
+          draft: true
           tag_name: v${{ env.version }}
           files: |
             ./bin/Release/net6.0/Bloodcraft.dll
