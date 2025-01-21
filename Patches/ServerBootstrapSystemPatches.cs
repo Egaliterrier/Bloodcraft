@@ -202,7 +202,7 @@ internal static class ServerBootstrapSystemPatches
                 {
                     weaponStats.Add(weaponType, []);
                 }
-                steamId.SetPlayerWeaponStats(weaponStats);  // Assuming the weapon stats are a list or similar collection.
+                steamId.SetPlayerWeaponStats(weaponStats);
             }
             else
             {
@@ -323,6 +323,7 @@ internal static class ServerBootstrapSystemPatches
 
                         steamId.SetPlayerRestedXP(new KeyValuePair<DateTime, float>(DateTime.UtcNow, currentRestedXP));
                         string message = $"+<color=#FFD700>{roundedXP}</color> <color=green>rested</color> <color=#FFC0CB>experience</color> earned from being logged out in your coffin!";
+
                         LocalizationService.HandleServerReply(EntityManager, user, message);
                     }
                 }
@@ -402,7 +403,7 @@ internal static class ServerBootstrapSystemPatches
                 steamId.SetFamiliarBattleGroup([0, 0, 0]);
             }
 
-            FamiliarExperienceManager.SaveFamiliarExperienceData(steamId, FamiliarExperienceManager.LoadFamiliarExperienceData(steamId));
+            FamiliarExperienceManager.SaveFamiliarExperience(steamId, FamiliarExperienceManager.LoadFamiliarExperience(steamId));
             FamiliarUnlocksManager.SaveUnlockedFamiliars(steamId, FamiliarUnlocksManager.LoadUnlockedFamiliars(steamId));
 
             Entity familiar = Familiars.FindPlayerFamiliar(playerCharacter);
@@ -447,7 +448,7 @@ internal static class ServerBootstrapSystemPatches
     {
         yield return _delay;
 
-        FamiliarSummonSystem.HandleFamiliarImmediate(user, playerCharacter, familiar);
+        FamiliarSummonSystem.HandleModifications(user, playerCharacter, familiar);
     }
     static IEnumerator UnbindFamiliarDelayRoutine(User user, Entity playerCharacter)
     {
