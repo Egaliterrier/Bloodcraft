@@ -819,8 +819,6 @@ internal static class DataService
 
         public static void LoadPlayerBools() => LoadData(ref _playerBools, "PlayerBools");
 
-        // public static void LoadPlayerParties() => LoadData(ref _playerParties, "PlayerParties");
-
         public static void LoadPlayerWoodcutting() => LoadData(ref _playerWoodcutting, "Woodcutting");
 
         public static void LoadPlayerMining() => LoadData(ref _playerMining, "Mining");
@@ -911,8 +909,6 @@ internal static class DataService
 
         public static void SavePlayerBools() => SaveData(_playerBools, "PlayerBools");
 
-        // public static void SavePlayerParties() => SaveData(_playerParties, "PlayerParties");
-
         public static void SavePlayerWoodcutting() => SaveData(_playerWoodcutting, "Woodcutting");
 
         public static void SavePlayerMining() => SaveData(_playerMining, "Mining");
@@ -991,7 +987,7 @@ internal static class DataService
     }
     public static class PlayerBoolsManager
     {
-        static string GetFilePath(ulong playerId) => Path.Combine(DirectoryPaths[0], $"{playerId}_bools.json");
+        static string GetFilePath(ulong playerId) => Path.Combine(DirectoryPaths[9], $"{playerId}_bools.json");
         public static void SavePlayerBools(ulong playerId, Dictionary<string, bool> preferences)
         {
             string filePath = GetFilePath(playerId);
@@ -1033,6 +1029,11 @@ internal static class DataService
     }
     internal static class FamiliarPersistence
     {
+        static readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            WriteIndented = true,
+        };
+
         [Serializable]
         internal class FamiliarUnlocksData
         {
@@ -1042,13 +1043,13 @@ internal static class DataService
         [Serializable]
         internal class FamiliarExperienceData
         {
-            public Dictionary<int, KeyValuePair<int, float>> FamiliarLevels { get; set; } = [];
+            public Dictionary<int, KeyValuePair<int, float>> FamiliarExperience { get; set; } = [];
         }
 
         [Serializable]
         internal class FamiliarPrestigeData
         {
-            public Dictionary<int, KeyValuePair<int, List<FamiliarStatType>>> FamiliarPrestiges { get; set; } = [];
+            public Dictionary<int, KeyValuePair<int, List<FamiliarStatType>>> FamiliarPrestige { get; set; } = [];
         }
 
         [Serializable]
@@ -1080,23 +1081,22 @@ internal static class DataService
         internal static Dictionary<ulong, FamiliarExperienceData> _familiarExperience = [];
         internal static Dictionary<ulong, FamiliarPrestigeData> _familiarPrestiges = [];
         internal static Dictionary<ulong, FamiliarBuffsData> _familiarBuffs = [];
-        internal static Dictionary<ulong, FamiliarEquipmentData> _familiarEquipment = [];
-        internal static Dictionary<ulong, FamiliarTraitData> _familiarTraits = [];
+        // internal static Dictionary<ulong, FamiliarEquipmentData> _familiarEquipment = [];
+        // internal static Dictionary<ulong, FamiliarTraitData> _familiarTraits = [];
         internal static class FamiliarUnlocksManager
         {
-            static string GetFilePath(ulong playerId) => Path.Combine(DirectoryPaths[8], $"{playerId}_familiar_unlocks.json");
-
-            public static void SaveUnlockedFamiliars(ulong playerId, FamiliarUnlocksData data)
+            static string GetFilePath(ulong steamId) => Path.Combine(DirectoryPaths[8], $"{steamId}_familiar_unlocks.json");
+            public static void SaveUnlockedFamiliars(ulong steamId, FamiliarUnlocksData data)
             {
-                string filePath = GetFilePath(playerId);
-                var options = new JsonSerializerOptions { WriteIndented = true };
-                string jsonString = JsonSerializer.Serialize(data, options);
+                string filePath = GetFilePath(steamId);
+                string jsonString = JsonSerializer.Serialize(data, _jsonOptions);
+
                 File.WriteAllText(filePath, jsonString);
             }
 
-            public static FamiliarUnlocksData LoadUnlockedFamiliars(ulong playerId)
+            public static FamiliarUnlocksData LoadUnlockedFamiliars(ulong steamId)
             {
-                string filePath = GetFilePath(playerId);
+                string filePath = GetFilePath(steamId);
                 if (!File.Exists(filePath))
                     return new FamiliarUnlocksData();
 
@@ -1104,146 +1104,109 @@ internal static class DataService
                 return JsonSerializer.Deserialize<FamiliarUnlocksData>(jsonString);
             }
         }
-
         internal static class FamiliarExperienceManager
         {
-            static string GetFilePath(ulong playerId) => Path.Combine(DirectoryPaths[7], $"{playerId}_familiar_experience.json");
-            public static void SaveFamiliarExperienceData(ulong playerId, FamiliarExperienceData data)
+            static string GetFilePath(ulong steamId) => Path.Combine(DirectoryPaths[7], $"{steamId}_familiar_experience.json");
+            public static void SaveFamiliarExperience(ulong steamId, FamiliarExperienceData data)
             {
-                string filePath = GetFilePath(playerId);
-                var options = new JsonSerializerOptions { WriteIndented = true };
-                string jsonString = JsonSerializer.Serialize(data, options);
+                string filePath = GetFilePath(steamId);
+                string jsonString = JsonSerializer.Serialize(data, _jsonOptions);
+
                 File.WriteAllText(filePath, jsonString);
             }
-            public static FamiliarExperienceData LoadFamiliarExperienceData(ulong playerId)
+            public static FamiliarExperienceData LoadFamiliarExperience(ulong steamId)
             {
-                string filePath = GetFilePath(playerId);
+                string filePath = GetFilePath(steamId);
                 if (!File.Exists(filePath))
                     return new FamiliarExperienceData();
 
                 string jsonString = File.ReadAllText(filePath);
                 return JsonSerializer.Deserialize<FamiliarExperienceData>(jsonString);
             }
-            public static KeyValuePair<int, float> LoadFamiliarExperience(ulong playerId, int famKey)
-            {
-                var experienceData = LoadFamiliarExperienceData(playerId);
-
-                if (experienceData.FamiliarLevels.TryGetValue(famKey, out var experience))
-                    return experience;
-
-                return new KeyValuePair<int, float>(1, Progression.ConvertLevelToXp(1)); // Default experience value if not found
-            }
-            public static void SaveFamiliarExperience(ulong playerId, int famKey, KeyValuePair<int, float> data)
-            {
-                var experienceData = LoadFamiliarExperienceData(playerId);
-                experienceData.FamiliarLevels[famKey] = data;
-
-                SaveFamiliarExperienceData(playerId, experienceData);
-            }
         }
         internal static class FamiliarPrestigeManager
         {
-            static string GetFilePath(ulong playerId) => Path.Combine(DirectoryPaths[7], $"{playerId}_familiar_prestige.json");
-            public static void SaveFamiliarPrestige(ulong playerId, FamiliarPrestigeData data)
+            static string GetFilePath(ulong steamId) => Path.Combine(DirectoryPaths[7], $"{steamId}_familiar_prestige.json");
+            public static void SaveFamiliarPrestige(ulong steamId, FamiliarPrestigeData data)
             {
-                string filePath = GetFilePath(playerId);
-                var options = new JsonSerializerOptions { WriteIndented = true };
-                string jsonString = JsonSerializer.Serialize(data, options);
+                string filePath = GetFilePath(steamId);
+                string jsonString = JsonSerializer.Serialize(data, _jsonOptions);
+
                 File.WriteAllText(filePath, jsonString);
             }
-
-            public static FamiliarPrestigeData LoadFamiliarPrestige(ulong playerId)
+            public static FamiliarPrestigeData LoadFamiliarPrestige(ulong steamId)
             {
-                string filePath = GetFilePath(playerId);
+                string filePath = GetFilePath(steamId);
                 if (!File.Exists(filePath))
                     return new FamiliarPrestigeData();
 
                 string jsonString = File.ReadAllText(filePath);
                 return JsonSerializer.Deserialize<FamiliarPrestigeData>(jsonString);
             }
-            public static int GetFamiliarPrestigeLevel(FamiliarPrestigeData familiarPrestigeData, int familiarId)
-            {
-                return familiarPrestigeData.FamiliarPrestiges.TryGetValue(familiarId, out var prestigeData) ? prestigeData.Key : 0;
-            }
         }
         internal static class FamiliarBuffsManager
         {
-            static string GetFilePath(ulong playerId) => Path.Combine(DirectoryPaths[8], $"{playerId}_familiar_buffs.json");
-            public static void SaveFamiliarBuffsData(ulong playerId, FamiliarBuffsData data)
+            static string GetFilePath(ulong steamId) => Path.Combine(DirectoryPaths[8], $"{steamId}_familiar_buffs.json");
+            public static void SaveFamiliarBuffsData(ulong steamId, FamiliarBuffsData data)
             {
-                string filePath = GetFilePath(playerId);
-                var options = new JsonSerializerOptions { WriteIndented = true };
-                string jsonString = JsonSerializer.Serialize(data, options);
+                string filePath = GetFilePath(steamId);
+                string jsonString = JsonSerializer.Serialize(data, _jsonOptions);
+
                 File.WriteAllText(filePath, jsonString);
             }
-            public static FamiliarBuffsData LoadFamiliarBuffs(ulong playerId)
+            public static FamiliarBuffsData LoadFamiliarBuffs(ulong steamId)
             {
-                string filePath = GetFilePath(playerId);
+                string filePath = GetFilePath(steamId);
                 if (!File.Exists(filePath))
                     return new FamiliarBuffsData();
 
                 string jsonString = File.ReadAllText(filePath);
                 return JsonSerializer.Deserialize<FamiliarBuffsData>(jsonString);
             }
-            public static List<int> GetFamiliarBuffs(ulong playerId, int famKey)
-            {
-                var buffsData = LoadFamiliarBuffs(playerId);
-
-                if (buffsData.FamiliarBuffs.TryGetValue(famKey, out var buffs))
-                    return buffs;
-
-                return [];
-            }
-            public static void SaveFamiliarBuffs(ulong playerId, int famKey, List<int> buffs)
-            {
-                var buffsData = LoadFamiliarBuffs(playerId);
-                buffsData.FamiliarBuffs[famKey] = buffs;
-
-                SaveFamiliarBuffsData(playerId, buffsData);
-            }
         }
         internal static class FamiliarEquipmentManager
         {
-            static string GetFilePath(ulong playerId) => Path.Combine(DirectoryPaths[8], $"{playerId}_familiar_equipment.json");
-            public static void SaveFamiliarEquipmentData(ulong playerId, FamiliarEquipmentData data)
+            static string GetFilePath(ulong steamId) => Path.Combine(DirectoryPaths[8], $"{steamId}_familiar_equipment.json");
+            public static void SaveFamiliarEquipmentData(ulong steamId, FamiliarEquipmentData data)
             {
-                string filePath = GetFilePath(playerId);
-                var options = new JsonSerializerOptions { WriteIndented = true };
-                string jsonString = JsonSerializer.Serialize(data, options);
+                string filePath = GetFilePath(steamId);
+                string jsonString = JsonSerializer.Serialize(data, _jsonOptions);
+
                 File.WriteAllText(filePath, jsonString);
             }
-            public static FamiliarEquipmentData LoadFamiliarEquipment(ulong playerId)
+            public static FamiliarEquipmentData LoadFamiliarEquipment(ulong steamId)
             {
-                string filePath = GetFilePath(playerId);
+                string filePath = GetFilePath(steamId);
                 if (!File.Exists(filePath))
                     return new FamiliarEquipmentData();
 
                 string jsonString = File.ReadAllText(filePath);
                 return JsonSerializer.Deserialize<FamiliarEquipmentData>(jsonString);
             }
-            public static List<int> GetFamiliarEquipment(ulong playerId, int famKey)
+            public static List<int> GetFamiliarEquipment(ulong steamId, int famKey)
             {
-                var equipmentData = LoadFamiliarEquipment(playerId);
+                var equipmentData = LoadFamiliarEquipment(steamId);
 
                 if (!equipmentData.FamiliarEquipment.TryGetValue(famKey, out var equipment))
                 {
                     equipment = [0, 0, 0, 0, 0, 0];
                     equipmentData.FamiliarEquipment[famKey] = equipment;
 
-                    SaveFamiliarEquipmentData(playerId, equipmentData);
+                    SaveFamiliarEquipmentData(steamId, equipmentData);
                 }
 
                 return equipment;
             }
-            public static void SaveFamiliarEquipment(ulong playerId, int famKey, List<int> equipment)
+            public static void SaveFamiliarEquipment(ulong steamId, int famKey, List<int> equipment)
             {
-                var equipmentData = LoadFamiliarEquipment(playerId);
+                var equipmentData = LoadFamiliarEquipment(steamId);
                 equipmentData.FamiliarEquipment[famKey] = equipment;
 
-                SaveFamiliarEquipmentData(playerId, equipmentData);
+                SaveFamiliarEquipmentData(steamId, equipmentData);
             }
         }
 
+        /*
         public static readonly List<FamiliarTrait> FamiliarTraits =
         [
         // Offensive Traits
@@ -1377,6 +1340,7 @@ internal static class DataService
             { FamiliarStatType.AttackSpeed, 1.1f }     // Attack Speed +10%
         })
         ];
+        */
     }
     internal static class PlayerDataInitialization
     {

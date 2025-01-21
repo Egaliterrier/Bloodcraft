@@ -68,7 +68,7 @@ internal static class FamiliarLevelingSystem
             if (gainedXP <= 0) return;
         }
 
-        if (_familiarPrestige && FamiliarPrestigeManager.LoadFamiliarPrestige(steamId).FamiliarPrestiges.TryGetValue(famKey, out var prestigeData) && prestigeData.Key > 0)
+        if (_familiarPrestige && FamiliarPrestigeManager.LoadFamiliarPrestige(steamId).FamiliarPrestige.TryGetValue(famKey, out var prestigeData) && prestigeData.Key > 0)
         {
             int prestiges = prestigeData.Key;
             float expReductionFactor = 1 - _levelingPrestigeReducer * prestiges;
@@ -89,28 +89,28 @@ internal static class FamiliarLevelingSystem
         if (isVBlood) return baseXP * _vBloodFamiliarMultiplier;
         return baseXP * _unitFamiliarMultiplier;
     }
-    public static void UpdateFamiliarExperience(Entity player, Entity familiar, int familiarId, ulong playerId, KeyValuePair<int, float> familiarXP, float gainedXP, int currentLevel)
+    public static void UpdateFamiliarExperience(Entity player, Entity familiar, int famKey, ulong steamId, KeyValuePair<int, float> familiarXP, float gainedXP, int currentLevel)
     {
-        FamiliarExperienceData data = FamiliarExperienceManager.LoadFamiliarExperienceData(playerId);
-        data.FamiliarLevels[familiarId] = new(familiarXP.Key, familiarXP.Value + gainedXP);
+        FamiliarExperienceData data = FamiliarExperienceManager.LoadFamiliarExperience(steamId);
+        data.FamiliarExperience[famKey] = new(familiarXP.Key, familiarXP.Value + gainedXP);
 
-        FamiliarExperienceManager.SaveFamiliarExperienceData(playerId, data);
-        CheckAndHandleLevelUp(player, familiar, familiarId, playerId, data.FamiliarLevels[familiarId], currentLevel, gainedXP);
+        FamiliarExperienceManager.SaveFamiliarExperience(steamId, data);
+        CheckAndHandleLevelUp(player, familiar, famKey, steamId, data.FamiliarExperience[famKey], currentLevel, gainedXP);
     }
-    public static KeyValuePair<int, float> GetFamiliarExperience(ulong playerId, int familiarId)
+    public static KeyValuePair<int, float> GetFamiliarExperience(ulong steamId, int famKey)
     {
-        FamiliarExperienceData data = FamiliarExperienceManager.LoadFamiliarExperienceData(playerId);
+        FamiliarExperienceData data = FamiliarExperienceManager.LoadFamiliarExperience(steamId);
 
-        if (data.FamiliarLevels.TryGetValue(familiarId, out var familiarData))
+        if (data.FamiliarExperience.TryGetValue(famKey, out var familiarData))
         {
             return familiarData;
         }
         else
         {
-            return new(0, 0);
+            return new(FamiliarSummonSystem.BASE_LEVEL, ConvertLevelToXp(FamiliarSummonSystem.BASE_LEVEL));
         }
     }
-    public static void CheckAndHandleLevelUp(Entity player, Entity familiar, int familiarId, ulong steamId, KeyValuePair<int, float> familiarXP, int currentLevel, float gainedXP)
+    public static void CheckAndHandleLevelUp(Entity player, Entity familiar, int famKey, ulong steamId, KeyValuePair<int, float> familiarXP, int currentLevel, float gainedXP)
     {
         Entity userEntity = player.GetUserEntity();
 
@@ -120,10 +120,10 @@ internal static class FamiliarLevelingSystem
         if (newLevel > currentLevel)
         {
             leveledUp = true;
-            FamiliarExperienceData data = FamiliarExperienceManager.LoadFamiliarExperienceData(steamId);
+            FamiliarExperienceData data = FamiliarExperienceManager.LoadFamiliarExperience(steamId);
 
-            data.FamiliarLevels[familiarId] = new(newLevel, familiarXP.Value);
-            FamiliarExperienceManager.SaveFamiliarExperienceData(steamId, data);
+            data.FamiliarExperience[famKey] = new(newLevel, familiarXP.Value);
+            FamiliarExperienceManager.SaveFamiliarExperience(steamId, data);
         }
 
         if (leveledUp)
@@ -134,7 +134,7 @@ internal static class FamiliarLevelingSystem
             unitLevel.Level._Value = newLevel;
             familiar.Write(unitLevel);
 
-            FamiliarSummonSystem.ModifyUnitStats(familiar, newLevel, steamId, familiarId);
+            FamiliarSummonSystem.ModifyUnitStats(familiar, newLevel, steamId, famKey);
             if (familiar.Has<BloodConsumeSource>()) FamiliarSummonSystem.ModifyBloodSource(familiar, newLevel);
         }
 
@@ -159,11 +159,11 @@ internal static class FamiliarLevelingSystem
     {
         return ConvertXpToLevel(GetXp(SteamID, familiarId));
     }
-    public static int GetLevelProgress(ulong SteamID, int familiarId)
+    public static int GetLevelProgress(ulong SteamID, int famKey)
     {
-        float currentXP = GetXp(SteamID, familiarId);
-        int currentLevelXP = ConvertLevelToXp(GetLevel(SteamID, familiarId));
-        int nextLevelXP = ConvertLevelToXp(GetLevel(SteamID, familiarId) + 1);
+        float currentXP = GetXp(SteamID, famKey);
+        int currentLevelXP = ConvertLevelToXp(GetLevel(SteamID, famKey));
+        int nextLevelXP = ConvertLevelToXp(GetLevel(SteamID, famKey) + 1);
 
         double neededXP = nextLevelXP - currentLevelXP;
         double earnedXP = nextLevelXP - currentXP;
